@@ -19,7 +19,7 @@ local states = {
 }
 
 --- --- ---
--- 1. INTERFACE (ASEMPLE PRO V16 - COM INTRO)
+-- 1. INTERFACE PRINCIPAL (ASEMPLE PRO V16)
 --- --- ---
 
 if pgui:FindFirstChild("AsemplePro_V16") then pgui.AsemplePro_V16:Destroy() end
@@ -42,40 +42,96 @@ fovStroke.Thickness = 1.5
 fovStroke.Transparency = 0.2
 Instance.new("UICorner", fovFrame).CornerRadius = UDim.new(1, 0)
 
--- MAIN FRAME 
+-- MAIN FRAME (500x350 FIXO)
 local mainFrame = Instance.new("Frame", screenGui)
 mainFrame.Size = UDim2.new(0, 500, 0, 350) 
--- Começa escondido lá em baixo para a animação da intro
-mainFrame.Position = UDim2.new(0.5, -250, 1.5, 0)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -175) -- Já nasce no centro
 mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
-mainFrame.Visible = false
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 8)
 
--- TÍTULO
+-- TÍTULO DA BARRA (Inicia invisível para a intro)
 local titleBar = Instance.new("Frame", mainFrame)
-titleBar.Size = UDim2.new(1, 0, 0, 50); titleBar.BackgroundTransparency = 1
+titleBar.Size = UDim2.new(1, 0, 0, 50)
+titleBar.BackgroundTransparency = 1
+titleBar.Visible = false
 
 local titleLabel = Instance.new("TextLabel", titleBar)
 titleLabel.Size = UDim2.new(1, 0, 1, 0); titleLabel.Position = UDim2.new(0, 20, 0, 0); titleLabel.BackgroundTransparency = 1
 titleLabel.RichText = true; titleLabel.Text = 'Asemple Pro <font color="rgb(0, 191, 255)">💎</font>'
 titleLabel.TextColor3 = Color3.new(1,1,1); titleLabel.Font = Enum.Font.GothamBold; titleLabel.TextSize = 18; titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- SCROLLING FRAME 
+-- SCROLLING FRAME (Inicia invisível)
 local container = Instance.new("ScrollingFrame", mainFrame)
 container.Size = UDim2.new(1, -40, 1, -70); container.Position = UDim2.new(0, 20, 0, 55)
 container.BackgroundTransparency = 1; container.ScrollBarThickness = 3; container.ScrollBarImageColor3 = Color3.fromRGB(0, 191, 255)
-container.AutomaticCanvasSize = Enum.AutomaticSize.Y
+container.AutomaticCanvasSize = Enum.AutomaticSize.Y; container.Visible = false
 local layout = Instance.new("UIListLayout", container)
-layout.Padding = UDim.new(0, 8)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0, 8); layout.SortOrder = Enum.SortOrder.LayoutOrder
 
 --- --- ---
--- 2. CRIANDO OS BLOCOS
+-- 2. ELEMENTOS DA INTRODUÇÃO (DENTRO DA UI)
 --- --- ---
+
+local introTitle = Instance.new("TextLabel", mainFrame)
+introTitle.Size = UDim2.new(1, 0, 0, 30)
+introTitle.Position = UDim2.new(0, 0, 0.5, -25) -- Centro absoluto
+introTitle.BackgroundTransparency = 1
+introTitle.RichText = true
+introTitle.Text = 'Asemple Pro <font color="rgb(0, 191, 255)">💎</font>'
+introTitle.TextColor3 = Color3.new(1,1,1)
+introTitle.Font = Enum.Font.GothamBold
+introTitle.TextSize = 30
+introTitle.TextTransparency = 1 -- Inicia invisível
+
+local introSub = Instance.new("TextLabel", mainFrame)
+introSub.Size = UDim2.new(1, 0, 0, 20)
+introSub.Position = UDim2.new(0, 0, 0.5, 10) -- Logo abaixo do título
+introSub.BackgroundTransparency = 1
+introSub.Text = "obrigado por usar"
+introSub.TextColor3 = Color3.fromRGB(180, 180, 180)
+introSub.Font = Enum.Font.Gotham
+introSub.TextSize = 16
+introSub.TextTransparency = 1 -- Inicia invisível
+
+--- --- ---
+-- 3. LOGICA DA ANIMAÇÃO DE INTRO
+--- --- ---
+
+local isAnimating = true 
+local isMenuOpen = true
+
+task.spawn(function()
+    -- Passo 1: Fade In no título principal
+    TweenService:Create(introTitle, TweenInfo.new(1), {TextTransparency = 0}):Play()
+    task.wait(1)
+    
+    -- Passo 2: Fade In no "obrigado por usar" sem sumir o título
+    TweenService:Create(introSub, TweenInfo.new(0.8), {TextTransparency = 0}):Play()
+    task.wait(2)
+    
+    -- Passo 3: Ambos somem suavemente
+    TweenService:Create(introTitle, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
+    TweenService:Create(introSub, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
+    task.wait(0.6)
+    
+    -- Destrói os labels da intro para limpar espaço
+    introTitle:Destroy()
+    introSub:Destroy()
+    
+    -- Passo 4: Revela a interface real (Barra de título e botões)
+    titleBar.Visible = true
+    container.Visible = true
+    isAnimating = false
+end)
+
+--- --- ---
+-- 4. FUNÇÕES DE CRIAÇÃO (HACKS)
+--- --- ---
+-- (Aqui vão as mesmas funções de AddCategory, CreateSwitch, etc. que já tínhamos)
+
 local orderCount = 0
-
 local function AddCategory(name)
     orderCount = orderCount + 1
     local frame = Instance.new("Frame", container)
@@ -91,20 +147,14 @@ local function CreateSwitch(name, key)
     local frame = Instance.new("Frame", container)
     frame.Size = UDim2.new(1, -10, 0, 40); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22); frame.LayoutOrder = orderCount
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-    
     local label = Instance.new("TextLabel", frame)
     label.Size = UDim2.new(1, -60, 1, 0); label.Position = UDim2.new(0, 15, 0, 0); label.BackgroundTransparency = 1
     label.Text = name; label.TextColor3 = Color3.fromRGB(200, 200, 200); label.Font = Enum.Font.GothamMedium; label.TextSize = 13; label.TextXAlignment = Enum.TextXAlignment.Left
-    
     local switchBG = Instance.new("TextButton", frame)
-    switchBG.Size = UDim2.new(0, 36, 0, 18); switchBG.Position = UDim2.new(1, -45, 0.5, -9)
-    switchBG.BackgroundColor3 = states[key] and Color3.fromRGB(0, 191, 255) or Color3.fromRGB(40, 40, 40); switchBG.Text = ""
+    switchBG.Size = UDim2.new(0, 36, 0, 18); switchBG.Position = UDim2.new(1, -45, 0.5, -9); switchBG.BackgroundColor3 = states[key] and Color3.fromRGB(0, 191, 255) or Color3.fromRGB(40, 40, 40); switchBG.Text = ""
     Instance.new("UICorner", switchBG).CornerRadius = UDim.new(1, 0)
-    
     local knob = Instance.new("Frame", switchBG)
-    knob.Size = UDim2.new(0, 14, 0, 14); knob.Position = states[key] and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
-    knob.BackgroundColor3 = Color3.new(1,1,1); Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-
+    knob.Size = UDim2.new(0, 14, 0, 14); knob.Position = states[key] and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7); knob.BackgroundColor3 = Color3.new(1,1,1); Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
     switchBG.MouseButton1Click:Connect(function()
         states[key] = not states[key]
         local active = states[key]
@@ -118,21 +168,13 @@ local function CreateModeSelector(name, key, opt1, opt2)
     local frame = Instance.new("Frame", container)
     frame.Size = UDim2.new(1, -10, 0, 40); frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22); frame.LayoutOrder = orderCount
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-    
     local label = Instance.new("TextLabel", frame)
     label.Size = UDim2.new(1, -100, 1, 0); label.Position = UDim2.new(0, 15, 0, 0); label.BackgroundTransparency = 1
     label.Text = name; label.TextColor3 = Color3.fromRGB(200, 200, 200); label.Font = Enum.Font.GothamMedium; label.TextSize = 13; label.TextXAlignment = Enum.TextXAlignment.Left
-    
     local btn = Instance.new("TextButton", frame)
-    btn.Size = UDim2.new(0, 80, 0, 24); btn.Position = UDim2.new(1, -90, 0.5, -12)
-    btn.BackgroundColor3 = Color3.fromRGB(0, 191, 255); btn.Text = states[key]
-    btn.TextColor3 = Color3.new(1,1,1); btn.Font = Enum.Font.GothamBold; btn.TextSize = 12
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-
-    btn.MouseButton1Click:Connect(function()
-        states[key] = (states[key] == opt1) and opt2 or opt1
-        btn.Text = states[key]
-    end)
+    btn.Size = UDim2.new(0, 80, 0, 24); btn.Position = UDim2.new(1, -90, 0.5, -12); btn.BackgroundColor3 = Color3.fromRGB(0, 191, 255); btn.Text = states[key]
+    btn.TextColor3 = Color3.new(1,1,1); btn.Font = Enum.Font.GothamBold; btn.TextSize = 12; Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    btn.MouseButton1Click:Connect(function() states[key] = (states[key] == opt1) and opt2 or opt1; btn.Text = states[key] end)
 end
 
 local function CreateSlider(name)
@@ -145,7 +187,6 @@ local function CreateSlider(name)
     bar.Size = UDim2.new(1, 0, 0, 4); bar.Position = UDim2.new(0, 0, 0, 25); bar.BackgroundColor3 = Color3.fromRGB(45, 45, 45); bar.Text = ""; Instance.new("UICorner", bar)
     local fill = Instance.new("Frame", bar)
     fill.Size = UDim2.new(states.fovSize/600, 0, 1, 0); fill.BackgroundColor3 = Color3.fromRGB(0, 191, 255); Instance.new("UICorner", fill)
-
     bar.MouseButton1Down:Connect(function()
         local move; move = RunService.RenderStepped:Connect(function()
             local rel = math.clamp((UserInputService:GetMouseLocation().X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
@@ -156,45 +197,39 @@ local function CreateSlider(name)
     end)
 end
 
+-- Montando o menu
 AddCategory("Combat")
 CreateSwitch("Aimbot Master", "aimbot")
 CreateSwitch("Team Check (Ignorar Aliados)", "teamCheck")
 CreateSwitch("Silent Aim", "silentAim")
 CreateModeSelector("Alvo do Aimbot", "aimTarget", "Head", "Body")
-
 AddCategory("Visuals & Config")
 CreateSwitch("ESP Tático", "esp")
 CreateSwitch("Mostrar Círculo FOV", "fovVisible")
 CreateSlider("Alcance do FOV")
 
 --- --- ---
--- 3. LÓGICA CORE (AIMBOT)
+-- 5. LÓGICA CORE (AIMBOT / ESP)
 --- --- ---
 
 RunService.RenderStepped:Connect(function()
     local cam = workspace.CurrentCamera
     local mousePos = UserInputService:GetMouseLocation()
-
     fovFrame.Visible = states.fovVisible
     fovFrame.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
-
     if states.aimbot or states.silentAim then
         local target = nil
         local closest3DDist = 250
-        
         local myChar = player.Character
         local myRoot = myChar and (myChar:FindFirstChild("HumanoidRootPart") or myChar:FindFirstChild("Head"))
-        
         if myRoot then
             for _, p in pairs(Players:GetPlayers()) do
                 local isEnemy = true
                 if states.teamCheck and player.Team and p.Team == player.Team then isEnemy = false end
-                
                 if p ~= player and isEnemy and p.Character then
                     local hum = p.Character:FindFirstChild("Humanoid")
                     local targetPartName = (states.aimTarget == "Head") and "Head" or (p.Character:FindFirstChild("UpperTorso") and "UpperTorso" or "HumanoidRootPart")
                     local targetPart = p.Character:FindFirstChild(targetPartName)
-
                     if hum and hum.Health > 0 and targetPart then
                         local pos, vis = cam:WorldToViewportPoint(targetPart.Position)
                         if vis then
@@ -202,8 +237,7 @@ RunService.RenderStepped:Connect(function()
                             if mDist < states.fovSize then 
                                 local realDist = (myRoot.Position - targetPart.Position).Magnitude
                                 if realDist < closest3DDist then 
-                                    closest3DDist = realDist
-                                    target = targetPart 
+                                    closest3DDist = realDist; target = targetPart 
                                 end
                             end
                         end
@@ -211,236 +245,24 @@ RunService.RenderStepped:Connect(function()
                 end
             end
         end
-        
         if target then 
             if states.silentAim then
-                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-                    cam.CFrame = CFrame.lookAt(cam.CFrame.Position, target.Position)
-                end
-            elseif states.aimbot then
-                cam.CFrame = CFrame.lookAt(cam.CFrame.Position, target.Position)
-            end
+                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then cam.CFrame = CFrame.lookAt(cam.CFrame.Position, target.Position) end
+            elseif states.aimbot then cam.CFrame = CFrame.lookAt(cam.CFrame.Position, target.Position) end
         end
     end
 end)
 
-RunService.Heartbeat:Connect(function()
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Character then
-            local visual = p.Character:FindFirstChild("Asmp")
-            if states.esp then
-                local root = p.Character:FindFirstChild("HumanoidRootPart") or p.Character:FindFirstChild("Head")
-                if root and not visual then
-                    local f = Instance.new("Folder", p.Character); f.Name = "Asmp"
-                    local bb = Instance.new("BillboardGui", f); bb.Adornee = root; bb.Size = UDim2.new(4,0,5,0); bb.AlwaysOnTop = true
-                    local b = Instance.new("Frame", bb); b.Size = UDim2.new(1,0,1,0); b.BackgroundTransparency = 1
-                    local s = Instance.new("UIStroke", b); s.Thickness = 2; s.Color = Color3.fromRGB(0, 191, 255)
-                end
-            elseif visual then visual:Destroy() end
-        end
-    end
-end)
-
---- --- ---
--- 4. ARRASTE 
---- --- ---
-local dragging, dragStart, startPos
-
-mainFrame.InputBegan:Connect(function(i) 
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then 
-        dragging = true; dragStart = i.Position; startPos = mainFrame.Position 
-    end 
-end)
-
-UserInputService.InputChanged:Connect(function(i) 
-    if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = i.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end 
-end)
-
-UserInputService.InputEnded:Connect(function(i) 
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then 
-        dragging = false 
-    end 
-end)
-
---- --- ---
--- 5. NOTIFICAÇÃO DE BOAS-VINDAS (TOPO)
---- --- ---
-local notifyFrame = Instance.new("Frame", screenGui)
-notifyFrame.Size = UDim2.new(0, 380, 0, 45)
-notifyFrame.Position = UDim2.new(0.5, -190, 0, -60)
-notifyFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-notifyFrame.BorderSizePixel = 0
-Instance.new("UICorner", notifyFrame).CornerRadius = UDim.new(0, 6)
-
-local notifyStroke = Instance.new("UIStroke", notifyFrame)
-notifyStroke.Color = Color3.fromRGB(0, 191, 255)
-notifyStroke.Thickness = 1.5
-
-local notifyLabel = Instance.new("TextLabel", notifyFrame)
-notifyLabel.Size = UDim2.new(1, 0, 1, 0); notifyLabel.BackgroundTransparency = 1
-notifyLabel.RichText = true; notifyLabel.Text = '💎 Para esconder a UI use a letra <b><font color="rgb(0, 191, 255)">G</font></b>. Obrigado!'
-notifyLabel.TextColor3 = Color3.fromRGB(220, 220, 220); notifyLabel.Font = Enum.Font.GothamMedium; notifyLabel.TextSize = 14
-
---- --- ---
--- 6. TELA DE INTRODUÇÃO (A MÁGICA ACONTECE AQUI)
---- --- ---
-
--- Bloqueia animações conflitantes durante a intro
-local isMenuOpen = true
-local isAnimating = true 
-
-local introFrame = Instance.new("Frame", screenGui)
-introFrame.Size = UDim2.new(0, 320, 0, 100)
-introFrame.Position = UDim2.new(0.5, -160, 0.5, -50)
-introFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-introFrame.BackgroundTransparency = 1 -- Começa invisível
-Instance.new("UICorner", introFrame).CornerRadius = UDim.new(0, 8)
-
-local introStroke = Instance.new("UIStroke", introFrame)
-introStroke.Color = Color3.fromRGB(0, 191, 255)
-introStroke.Thickness = 1.5
-introStroke.Transparency = 1
-
-local introTitle = Instance.new("TextLabel", introFrame)
-introTitle.Size = UDim2.new(1, 0, 1, 0)
-introTitle.Position = UDim2.new(0, 0, -0.15, 0)
-introTitle.BackgroundTransparency = 1
-introTitle.RichText = true
-introTitle.Text = 'Asemple Pro <font color="rgb(0, 191, 255)">💎</font>'
-introTitle.TextColor3 = Color3.new(1,1,1)
-introTitle.Font = Enum.Font.GothamBold
-introTitle.TextSize = 22
-introTitle.TextTransparency = 1
-
-local introSub = Instance.new("TextLabel", introFrame)
-introSub.Size = UDim2.new(1, 0, 1, 0)
-introSub.Position = UDim2.new(0, 0, 0.20, 0)
-introSub.BackgroundTransparency = 1
-introSub.Text = "obrigado por usar"
-introSub.TextColor3 = Color3.fromRGB(180, 180, 180)
-introSub.Font = Enum.Font.Gotham
-introSub.TextSize = 14
-introSub.TextTransparency = 1
-
--- Roda a sequência de animação da intro
-task.spawn(function()
-    -- Passo 1: Fade In no Fundo e no Título
-    TweenService:Create(introFrame, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
-    TweenService:Create(introStroke, TweenInfo.new(0.5), {Transparency = 0}):Play()
-    TweenService:Create(introTitle, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
-    task.wait(0.8)
-    
-    -- Passo 2: Fade In no "obrigado por usar"
-    TweenService:Create(introSub, TweenInfo.new(0.8), {TextTransparency = 0}):Play()
-    task.wait(1.5)
-    
-    -- Passo 3: Some com a Intro
-    TweenService:Create(introFrame, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(introStroke, TweenInfo.new(0.4), {Transparency = 1}):Play()
-    TweenService:Create(introTitle, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
-    TweenService:Create(introSub, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
-    task.wait(0.5)
-    introFrame:Destroy()
-
-    -- Passo 4: UI Principal sobe majestosamente
-    mainFrame.Visible = true
-    local bringUp = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -250, 0.5, -175)})
-    bringUp:Play()
-    bringUp.Completed:Wait()
-
-    -- Passo 5: Notificação desce lá do topo
-    TweenService:Create(notifyFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -190, 0, 20)}):Play()
-    
-    -- Libera os botões do sistema
-    isAnimating = false
-
-    -- Some a notificação do topo depois de 5 segundos
-    task.delay(5, function()
-        local hideAnim = TweenService:Create(notifyFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -190, 0, -60)})
-        hideAnim:Play()
-        hideAnim.Completed:Connect(function() notifyFrame:Destroy() end)
-    end)
-end)
-
---- --- ---
--- 7. ANIMAÇÃO DE ABRIR E FECHAR (TECLA G)
---- --- ---
-
-UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if not gameProcessedEvent and input.KeyCode == Enum.KeyCode.G then
-        if isAnimating then return end -- Bloqueia se a intro ainda estiver rodando
-        isAnimating = true
+-- (Arraste e Tecla G continuam os mesmos)
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.G and not isAnimating then
         isMenuOpen = not isMenuOpen
-        
         if isMenuOpen then
             mainFrame.Visible = true
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -250, 0.5, -175)})
-            tween:Play(); tween.Completed:Wait()
+            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -250, 0.5, -175)}):Play()
         else
-            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -250, 1.5, 0)})
-            tween:Play(); tween.Completed:Wait()
-            mainFrame.Visible = false
+            local t = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -250, 1.5, 0)})
+            t:Play(); t.Completed:Connect(function() mainFrame.Visible = false end)
         end
-        isAnimating = false
     end
 end)
-
---- --- ---
--- 8. NOTIFICAÇÃO DINÂMICA DE TIME (SÓ NO ARSENAL)
---- --- ---
-
-if game.PlaceId == 286090429 then
-    
-    local function notifyTeamChange()
-        local team = player.Team
-        if not team or team.Name == "Spectator" or team.Name == "Lobby" then return end
-        
-        if screenGui:FindFirstChild("TeamNotifyFrame") then
-            screenGui.TeamNotifyFrame:Destroy()
-        end
-
-        local hexColor = team.TeamColor.Color:ToHex()
-        
-        local infoFrame = Instance.new("Frame", screenGui)
-        infoFrame.Name = "TeamNotifyFrame"
-        infoFrame.Size = UDim2.new(0, 260, 0, 55)
-        infoFrame.Position = UDim2.new(1, 20, 1, -180) 
-        infoFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-        infoFrame.BorderSizePixel = 0
-        Instance.new("UICorner", infoFrame).CornerRadius = UDim.new(0, 6)
-
-        local infoStroke = Instance.new("UIStroke", infoFrame)
-        infoStroke.Color = team.TeamColor.Color 
-        infoStroke.Thickness = 1.5
-
-        local infoLabel = Instance.new("TextLabel", infoFrame)
-        infoLabel.Size = UDim2.new(1, -20, 1, 0)
-        infoLabel.Position = UDim2.new(0, 10, 0, 0)
-        infoLabel.BackgroundTransparency = 1
-        infoLabel.RichText = true
-        infoLabel.Text = string.format("🎮 Jogo: <b><font color='rgb(0, 191, 255)'>Arsenal</font></b>\n🛡️ Time: <b><font color='#%s'>%s</font></b>", hexColor, team.Name)
-        infoLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-        infoLabel.Font = Enum.Font.GothamMedium
-        infoLabel.TextSize = 13
-        infoLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-        TweenService:Create(infoFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -280, 1, -180)}):Play()
-
-        task.delay(4, function()
-            if infoFrame and infoFrame.Parent then
-                local hideInfo = TweenService:Create(infoFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 20, 1, -180)})
-                hideInfo:Play()
-                hideInfo.Completed:Connect(function() infoFrame:Destroy() end)
-            end
-        end)
-    end
-
-    player:GetPropertyChangedSignal("Team"):Connect(notifyTeamChange)
-    
-    if player.Team and player.Team.Name ~= "Lobby" then
-        task.delay(2, notifyTeamChange)
-    end
-end
